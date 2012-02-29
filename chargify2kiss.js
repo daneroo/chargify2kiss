@@ -24,7 +24,7 @@ getJSON('/subscriptions',function(err,subscriptions){
     // console.log('-subscription:'+subscription.id);
     subscriptionLookup[""+subscription.id]={
       id:subscription.id,
-      handle:subscription.product.handle,
+      plan:subscription.product.handle,
       reference:subscription.customer.reference,
       email:subscription.customer.email
     };
@@ -38,17 +38,43 @@ getJSON('/subscriptions',function(err,subscriptions){
       var transaction=obj.transaction;
       // console.log(transaction);
       
-      var stamp = new Date(transaction.created_at).toISOString();
-      var subscriberId=""+transaction.subscription_id;
-      var subscriber = subscriptionLookup[subscriberId]||subscriberId;
+      var stamp = new Date(transaction.created_at);
+      var subscriptionId=""+transaction.subscription_id;
+      var subscription = subscriptionLookup[subscriptionId]||subscriptionId;
       console.log(JSON.stringify({
         id:transaction.id,
         type:transaction.transaction_type,
-        stamp:stamp,
+        stamp:stamp.toISOString(),
         amount:transaction.amount_in_cents,
         balance:transaction.ending_balance_in_cents,
-        subscriber:subscriber
+        subscription:subscription
         }));
+
+
+      // output the kiss get url:      
+      eventName = {
+        charge:'charged',
+        adjustment:'billed',
+        payment:'billed'
+      }[transaction.transaction_type];
+
+      if (!eventName) {
+        console.log('unhadled transcation_type:',transaction.transaction_type);
+        return;
+      }
+      
+      var params={
+        'Plan Name':subscription.plan,
+        'Billing Amount':transaction.amount_in_cents/100,
+        _n:eventName,
+        _k:'d2fb45441ee59b9e0e5fd42360be788b06a10b71',
+        _p:subscription.email,
+        _t:Math.floor(stamp.getTime()/1000)
+      };
+      var baseuri='http://trk.kissmetrics.com/e?';
+      var url = baseuri+qs.stringify(params)
+      console.log('curl', url);
+      request(url);
     });
   });
 });

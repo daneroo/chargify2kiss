@@ -34,3 +34,11 @@ To lookup a `subscription_id`,
 
 Figure out how to do a while loop for paging.
 cache the subscription lookup.
+
+## Pushing to KissMetrics
+do a get request to `http://trk.kissmetrics.com/e`
+
+    _kmq.push(['record', 'billed', {'Plan Type':'handle-1', 'Billing Amount':'1.00'}]);
+
+http://trk.kissmetrics.com/e?Plan%20Type=handle-1&Billing%20Amount=1.00&_n=billed&_k=d2fb45441ee59b9e0e5fd42360be788b06a10b71&_p=daniel.lauzon%40gmail.com&_t=1330550219
+
