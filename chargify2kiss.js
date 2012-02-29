@@ -1,38 +1,94 @@
 
 var request = require('request');
+var qs = require('querystring');
+var async = require('async');
 
 console.log('Chargify, meet kiss.');
 var CHARGIFYSUBDOMAIN=process.env.CHARGIFYSUBDOMAIN;
 var CHARGIFYAPIKEY=process.env.CHARGIFYAPIKEY;
+
+if (!CHARGIFYSUBDOMAIN || !CHARGIFYAPIKEY){
+  console.log('missing CHARGIFYSUBDOMAIN or CHARGIFYAPIKEY');
+  process.exit(1);
+}
 var CHARGIFYURL='https://'+CHARGIFYAPIKEY+'@'+CHARGIFYSUBDOMAIN+'.chargify.com';
 
 console.log('CHARGIFYURL: ',CHARGIFYURL);
 
-var lastSubscr;
-getJSON('/transactions',function(err,data){
-  if (err) return;
-  console.log('--Transactions:%d',data.length);
-  data.forEach(function(obj){
-    // console.log(trans);
-    var trans=obj.transaction;
-    stamp = new Date(trans.created_at);
-    console.log({id:trans.id,type:trans.type,stamp:stamp,amt:trans.amount_in_cents,subscr:trans.subscription_id});
-    lastSubscrId=trans.subscription_id;
+var subscriptionLookup={};
+getJSON('/subscriptions',function(err,subscriptions){
+  console.log('--Subscriptions:%d',subscriptions.length);
+  subscriptions.forEach(function(obj){
+    var subscription = obj.subscription;
+    // console.log('-subscription:'+JSON.stringify(subscription,null,2));
+    // console.log('-subscription:'+subscription.id);
+    subscriptionLookup[""+subscription.id]={
+      id:subscription.id,
+      handle:subscription.product.handle,
+      reference:subscription.customer.reference,
+      email:subscription.customer.email
+    };
   });
-
-  console.log('--LastSubscription:%d',lastSubscrId);
-  getJSON('/subscriptions/'+lastSubscrId,function(err,data){
-    console.log('++LastSubscription:%d',lastSubscrId);
-    console.log(data);
-  });  
+  // console.log(subscriptionLookup);
+  
+  getJSON('/transactions',function(err,transactions){
+    if (err) return;
+    console.log('--Transactions:%d',transactions.length);
+    transactions.forEach(function(obj){
+      var transaction=obj.transaction;
+      // console.log(transaction);
+      
+      var stamp = new Date(transaction.created_at).toISOString();
+      var subscriberId=""+transaction.subscription_id;
+      var subscriber = subscriptionLookup[subscriberId]||subscriberId;
+      console.log(JSON.stringify({
+        id:transaction.id,
+        type:transaction.transaction_type,
+        stamp:stamp,
+        amount:transaction.amount_in_cents,
+        balance:transaction.ending_balance_in_cents,
+        subscriber:subscriber
+        }));
+    });
+  });
 });
 
-function getJSON(path,cb){
+// fetches all pages, perPage (const) at a time
+function getJSON(path,cb){ 
+  var weAreDone = false;
+  var perPage=30;
+  var page=0; // first fetch pre-increments: start at page 1
+  var alldata=[];
+  async.until(
+      function () { return weAreDone; },
+      function (next) {
+        page++;
+        // console.log('doing page:%d',page)
+        getJSONPage(path,perPage,page,function(err,data){
+          if (!err) {
+            alldata = alldata.concat(data);
+          }
+          weAreDone = data.length==0; // always fetch a last empty page ...
+          next(err);
+        });
+      },
+      function (err) {
+        console.log('Fetched: %d records in %d pages of size %d',alldata.length,page,perPage);
+        cb(err,alldata);
+      }
+  );
+}
+function getJSONPage(path,perPage,page,cb){
+  // qs options hasn/t landed in request yet.
+  // should maybe use url.parse directly
+  var params = qs.stringify({ per_page : perPage, page:page, since_date:'2011-12-07' });
   request({
-    uri:CHARGIFYURL+path,
+    uri:CHARGIFYURL+path+'?'+params,
     json:true,
-    qs: { per_page : 3, page:1 }
+    // qs: { per_page : perPage, page:page }
+
   }, function (error, response, data) {
+    // console.log(response);
     if (cb) cb(error,data);    
     if (error) {
      console.log(error);

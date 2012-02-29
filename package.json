@@ -9,6 +9,7 @@
    "url" : "http://github.com/daneroo/chargify2kiss.git"
   },
   "dependencies":{
-    "request":"2.9.x"
+    "request":"2.9.x",
+    "async":"0.1.x"
   }
 }
