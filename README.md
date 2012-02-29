@@ -17,9 +17,9 @@ You can qualify these with `page`,`per_page`,`kinds[]`,`since_date`,`until_date`
 
 To lookup a `subscription_id`,
 
-curl -s "${CHARGIFYURL}/subscriptions.json" |python -mjson.tool
-# or lookup a specific transaction
-curl -s "${CHARGIFYURL}/subscriptions/<subscription_id>.json" |python -mjson.tool
+    curl -s "${CHARGIFYURL}/subscriptions.json" |python -mjson.tool
+    # or lookup a specific transaction
+    curl -s "${CHARGIFYURL}/subscriptions/<subscription_id>.json" |python -mjson.tool
 
 ## Node iteration
 Figure out how to do a while loop for paging.
