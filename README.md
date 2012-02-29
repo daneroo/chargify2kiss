@@ -6,21 +6,31 @@ Downloading chargify transactions as json
     export CHARGIFYAPIKEY=<zzzzz:x>
     export CHARGIFYSUBDOMAIN=yoursubdomain
     export CHARGIFYURL="https://${CHARGIFYAPIKEY}@${CHARGIFYSUBDOMAIN}.chargify.com"
-    
+    export FLAGS='-s -H Accept:application/json -H Content-Type:application/json'
+
+I drop these settings in `.gitignored` `privateSettings.sh` for testing.
+
+    source privateSettings.sh
+
 Fetch transcations
     
-    curl -s -u ${CHARGIFYAPIKEY} https://${CHARGIFYSUBDOMAIN}.chargify.com/transactions.json |python -mjson.tool
+    curl ${FLAGS} -u ${CHARGIFYAPIKEY} https://${CHARGIFYSUBDOMAIN}.chargify.com/transactions |python -mjson.tool
     or
-    curl -s ${CHARGIFYURL}/transactions.json |python -mjson.tool
+    curl ${FLAGS} ${CHARGIFYURL}/transactions.json |python -mjson.tool
 
 You can qualify these with `page`,`per_page`,`kinds[]`,`since_date`,`until_date`,`since_id`,`max_id`.
 
 To lookup a `subscription_id`,
 
-    curl -s "${CHARGIFYURL}/subscriptions.json" |python -mjson.tool
+    curl ${FLAGS} "${CHARGIFYURL}/subscriptions" |python -mjson.tool
     # or lookup a specific transaction
-    curl -s "${CHARGIFYURL}/subscriptions/<subscription_id>.json" |python -mjson.tool
+    curl ${FLAGS} "${CHARGIFYURL}/subscriptions/<subscription_id>" |python -mjson.tool
 
-## Node iteration
+## Node invocation
+
+    npm install # do this once
+    source privateSettings.sh
+    node chargify2kiss
+
 Figure out how to do a while loop for paging.
 cache the subscription lookup.
