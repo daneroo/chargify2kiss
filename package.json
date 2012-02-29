@@ -1,0 +1,14 @@
+{ 
+  "name": "chargify2kiss",
+  "description": "Download chargify transactions and upload them to KissMetrics",
+  "main": "chargify2kiss",
+  "author": "Daniel Lauzon",
+  "version": "0.1.0",
+  "repository" :  { 
+   "type" : "git",
+   "url" : "http://github.com/daneroo/chargify2kiss.git"
+  },
+  "dependencies":{
+    "request":"2.9.x"
+  }
+}
