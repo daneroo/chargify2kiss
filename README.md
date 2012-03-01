@@ -42,3 +42,21 @@ do a get request to `http://trk.kissmetrics.com/e`
 
 http://trk.kissmetrics.com/e?Plan%20Type=handle-1&Billing%20Amount=1.00&_n=billed&_k=d2fb45441ee59b9e0e5fd42360be788b06a10b71&_p=daniel.lauzon%40gmail.com&_t=1330550219
 
+## pushing to temp mongo
+
+    #start mongo
+    mongod --dbpath data --quiet --logpath /dev/null >/dev/null 2>&1 &
+    #stop monogo
+    echo "db.shutdownServer();" | mongo admin >/dev/null
+    
+    #example max-aggreagtion in mongo-shell
+    
+    db.users.find({},{_id:false,created:true}).forEach(printjson);
+    db.users.group({
+        key: {},
+        initial: {maxdate: 0},
+        reduce: function(obj,agg){ if(obj.created>agg.maxdate) agg.maxdate=obj.created;},
+        finalize: function(agg){ agg.stamp = new Date(agg.maxdate*1000) }
+    });
+                 
+                 
