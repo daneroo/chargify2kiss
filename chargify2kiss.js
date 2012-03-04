@@ -62,7 +62,8 @@ getJSON('/subscriptions',function(err,subscriptions){
         console.log('unhadled transcation_type:',transaction.transaction_type);
         return;
       }
-      
+      var versionSuffix='v1';
+      eventName+=versionSuffix;
       var params={
         'Plan Name':subscription.plan,
         'Billing Amount':transaction.amount_in_cents/100,
