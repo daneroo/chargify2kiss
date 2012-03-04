@@ -69,7 +69,8 @@ getJSON('/subscriptions',function(err,subscriptions){
         _n:eventName,
         _k:'d2fb45441ee59b9e0e5fd42360be788b06a10b71',
         _p:subscription.email,
-        _t:Math.floor(stamp.getTime()/1000)
+        _t:Math.floor(stamp.getTime()/1000),
+        _d:1
       };
       var baseuri='http://trk.kissmetrics.com/e?';
       var url = baseuri+qs.stringify(params)
