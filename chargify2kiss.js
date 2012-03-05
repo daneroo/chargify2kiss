@@ -64,7 +64,7 @@ getJSON('/subscriptions',function(err,subscriptions){
         return;
       }
 
-      var versionSuffix='v1';
+      var versionSuffix='V2';
       var params={
         'Plan Name':subscription.plan,
         'Billing Description':transaction.memo,
