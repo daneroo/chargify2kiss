@@ -45,10 +45,11 @@ getJSON('/subscriptions',function(err,subscriptions){
         id:transaction.id,
         type:transaction.transaction_type,
         stamp:stamp.toISOString(),
+        memo:transaction.memo,
         amount:transaction.amount_in_cents,
         balance:transaction.ending_balance_in_cents,
         subscription:subscription
-        }));
+      }));
 
 
       // output the kiss get url:      
@@ -57,26 +58,40 @@ getJSON('/subscriptions',function(err,subscriptions){
         adjustment:'billed',
         payment:'billed'
       }[transaction.transaction_type];
-
+      
       if (!eventName) {
-        console.log('unhadled transcation_type:',transaction.transaction_type);
+        console.log('unhandled transcation_type:',transaction.transaction_type);
         return;
       }
+
       var versionSuffix='v1';
-      eventName+=versionSuffix;
       var params={
         'Plan Name':subscription.plan,
-        'Billing Amount':transaction.amount_in_cents/100,
-        _n:eventName,
+        'Billing Description':transaction.memo,
+        _n:eventName+versionSuffix,
         _k:'d2fb45441ee59b9e0e5fd42360be788b06a10b71',
         _p:subscription.email,
         _t:Math.floor(stamp.getTime()/1000),
         _d:1
       };
+      
+      // now add propertie(s) for amount
+      var amount = transaction.amount_in_cents/100;
+      if (eventName==='billed'){
+        params[eventName+'Amt'+versionSuffix]=amount; // billedAmtv1
+      } else if (eventName==='charged'){
+        params[eventName+'Amt'+versionSuffix]=amount; // chargedAmtv1
+        var memo = transaction.memo;
+        var isTax = memo && /^tax/i.test(memo);
+        // console.log(JSON.stringify({type:eventName,tax:isTax,memo:memo,amt:amount}));
+        if (!isTax){
+          params[eventName+'AmtNoTax'+versionSuffix]=amount; // chargedAmtNoTaxv1
+        }
+      }
       var baseuri='http://trk.kissmetrics.com/e?';
       var url = baseuri+qs.stringify(params)
       console.log('curl', url);
-      // request(url);
+      request(url);
     });
   });
 });
