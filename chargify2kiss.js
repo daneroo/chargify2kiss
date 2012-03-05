@@ -91,7 +91,7 @@ getJSON('/subscriptions',function(err,subscriptions){
       var baseuri='http://trk.kissmetrics.com/e?';
       var url = baseuri+qs.stringify(params)
       console.log('curl', url);
-      request(url);
+      // request(url);
     });
   });
 });
