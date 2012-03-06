@@ -6,14 +6,16 @@ var async = require('async');
 console.log('Chargify, meet kiss.');
 var CHARGIFYSUBDOMAIN=process.env.CHARGIFYSUBDOMAIN;
 var CHARGIFYAPIKEY=process.env.CHARGIFYAPIKEY;
+var KISSMETRICSAPIKEY=process.env.KISSMETRICSAPIKEY;
 
-if (!CHARGIFYSUBDOMAIN || !CHARGIFYAPIKEY){
-  console.log('missing CHARGIFYSUBDOMAIN or CHARGIFYAPIKEY');
+if (!CHARGIFYSUBDOMAIN || !CHARGIFYAPIKEY || !KISSMETRICSAPIKEY){
+  console.log('missing CHARGIFYSUBDOMAIN or CHARGIFYAPIKEY or KISSMETRICSAPIKEY');
   process.exit(1);
 }
 var CHARGIFYURL='https://'+CHARGIFYAPIKEY+'@'+CHARGIFYSUBDOMAIN+'.chargify.com';
 
-console.log('CHARGIFYURL: ',CHARGIFYURL);
+// console.log('CHARGIFYURL: ',CHARGIFYURL);
+// console.log('KISSMETRICSAPIKEY: ',KISSMETRICSAPIKEY);
 
 var subscriptionLookup={};
 getJSON('/subscriptions',function(err,subscriptions){
@@ -69,7 +71,7 @@ getJSON('/subscriptions',function(err,subscriptions){
         'Plan Name':subscription.plan,
         'Billing Description':transaction.memo,
         _n:eventName+versionSuffix,
-        _k:'d2fb45441ee59b9e0e5fd42360be788b06a10b71',
+        _k:KISSMETRICSAPIKEY,
         _p:subscription.email,
         _t:Math.floor(stamp.getTime()/1000),
         _d:1
