@@ -123,10 +123,20 @@ function getJSON(path,cb){
       }
   );
 }
+
+function daysAgo(days){ // returns YYYY-MM-DD string
+  var d=new Date(+new Date()-days*24*60*60*1000);
+  function pad(n){return ((n<10)?'0':'')+n;}
+  return [pad(d.getFullYear()),pad(d.getMonth()+1),pad(d.getDate())].join('-');
+}
+
+// this injects since_date into subscripton queries, which it shouldn't...
+// that is meant for transactions, and we should parse input params...
+var daysToFetch=2;
 function getJSONPage(path,perPage,page,cb){
   // qs options hasn/t landed in request yet.
   // should maybe use url.parse directly
-  var params = qs.stringify({ per_page : perPage, page:page, since_date:'2011-12-07' });
+  var params = qs.stringify({ per_page : perPage, page:page, since_date:daysAgo(daysToFetch) });
   request({
     uri:CHARGIFYURL+path+'?'+params,
     json:true,
