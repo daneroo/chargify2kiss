@@ -5,6 +5,7 @@ var async = require('async');
 
 var CHARGIFYSUBDOMAIN=process.env.CHARGIFYSUBDOMAIN;
 var CHARGIFYAPIKEY=process.env.CHARGIFYAPIKEY;
+var KISSMETRICSAPIKEY=process.env.KISSMETRICSAPIKEY;
 
 // var argv = require('optimist').argv;
 var argv = require('optimist')
@@ -20,8 +21,8 @@ var argv = require('optimist')
 
 console.dir(argv);
 
-if (!CHARGIFYSUBDOMAIN || !CHARGIFYAPIKEY){
-  console.log('missing CHARGIFYSUBDOMAIN or CHARGIFYAPIKEY');
+if (!CHARGIFYSUBDOMAIN || !CHARGIFYAPIKEY || !KISSMETRICSAPIKEY){
+  console.log('missing CHARGIFYSUBDOMAIN or CHARGIFYAPIKEY or KISSMETRICSAPIKEY');
   process.exit(1);
 }
 
@@ -29,7 +30,8 @@ process.exit(1);
 
 var CHARGIFYURL='https://'+CHARGIFYAPIKEY+'@'+CHARGIFYSUBDOMAIN+'.chargify.com';
 
-console.log('CHARGIFYURL: ',CHARGIFYURL);
+// console.log('CHARGIFYURL: ',CHARGIFYURL);
+// console.log('KISSMETRICSAPIKEY: ',KISSMETRICSAPIKEY);
 
 var subscriptionLookup={};
 getJSON('/subscriptions',function(err,subscriptions){
@@ -61,10 +63,11 @@ getJSON('/subscriptions',function(err,subscriptions){
         id:transaction.id,
         type:transaction.transaction_type,
         stamp:stamp.toISOString(),
+        memo:transaction.memo,
         amount:transaction.amount_in_cents,
         balance:transaction.ending_balance_in_cents,
         subscription:subscription
-        }));
+      }));
 
 
       // output the kiss get url:      
@@ -73,22 +76,36 @@ getJSON('/subscriptions',function(err,subscriptions){
         adjustment:'billed',
         payment:'billed'
       }[transaction.transaction_type];
-
+      
       if (!eventName) {
-        console.log('unhadled transcation_type:',transaction.transaction_type);
+        console.log('unhandled transcation_type:',transaction.transaction_type);
         return;
       }
-      var versionSuffix='v1';
-      eventName+=versionSuffix;
+
+      var versionSuffix='V2';
       var params={
         'Plan Name':subscription.plan,
-        'Billing Amount':transaction.amount_in_cents/100,
-        _n:eventName,
-        _k:'d2fb45441ee59b9e0e5fd42360be788b06a10b71',
+        'Billing Description':transaction.memo,
+        _n:eventName+versionSuffix,
+        _k:KISSMETRICSAPIKEY,
         _p:subscription.email,
         _t:Math.floor(stamp.getTime()/1000),
         _d:1
       };
+      
+      // now add propertie(s) for amount
+      var amount = transaction.amount_in_cents/100;
+      if (eventName==='billed'){
+        params[eventName+'Amt'+versionSuffix]=amount; // billedAmtv1
+      } else if (eventName==='charged'){
+        params[eventName+'Amt'+versionSuffix]=amount; // chargedAmtv1
+        var memo = transaction.memo;
+        var isTax = memo && /^tax/i.test(memo);
+        // console.log(JSON.stringify({type:eventName,tax:isTax,memo:memo,amt:amount}));
+        if (!isTax){
+          params[eventName+'AmtNoTax'+versionSuffix]=amount; // chargedAmtNoTaxv1
+        }
+      }
       var baseuri='http://trk.kissmetrics.com/e?';
       var url = baseuri+qs.stringify(params)
       console.log('curl', url);
@@ -122,10 +139,20 @@ function getJSON(path,cb){
       }
   );
 }
+
+function daysAgo(days){ // returns YYYY-MM-DD string
+  var d=new Date(+new Date()-days*24*60*60*1000);
+  function pad(n){return ((n<10)?'0':'')+n;}
+  return [pad(d.getFullYear()),pad(d.getMonth()+1),pad(d.getDate())].join('-');
+}
+
+// this injects since_date into subscripton queries, which it shouldn't...
+// that is meant for transactions, and we should parse input params...
+var daysToFetch=2;
 function getJSONPage(path,perPage,page,cb){
   // qs options hasn/t landed in request yet.
   // should maybe use url.parse directly
-  var params = qs.stringify({ per_page : perPage, page:page, since_date:'2011-12-07' });
+  var params = qs.stringify({ per_page : perPage, page:page, since_date:daysAgo(daysToFetch) });
   request({
     uri:CHARGIFYURL+path+'?'+params,
     json:true,
