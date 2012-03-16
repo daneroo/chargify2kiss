@@ -3,14 +3,30 @@ var request = require('request');
 var qs = require('querystring');
 var async = require('async');
 
-console.log('Chargify, meet kiss.');
 var CHARGIFYSUBDOMAIN=process.env.CHARGIFYSUBDOMAIN;
 var CHARGIFYAPIKEY=process.env.CHARGIFYAPIKEY;
+
+// var argv = require('optimist').argv;
+var argv = require('optimist')
+    .usage('Chargify, meet Kissmetrics.\nUsage: $0')
+    .demand('d')
+    .alias('t', 'test')
+    .alias('d', 'days')
+    .boolean('t')
+    .describe('days', 'Days to consider')
+    .describe('test', 'Dry-run')
+    .argv
+;
+
+console.dir(argv);
 
 if (!CHARGIFYSUBDOMAIN || !CHARGIFYAPIKEY){
   console.log('missing CHARGIFYSUBDOMAIN or CHARGIFYAPIKEY');
   process.exit(1);
 }
+
+process.exit(1);
+
 var CHARGIFYURL='https://'+CHARGIFYAPIKEY+'@'+CHARGIFYSUBDOMAIN+'.chargify.com';
 
 console.log('CHARGIFYURL: ',CHARGIFYURL);
