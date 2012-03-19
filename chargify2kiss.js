@@ -74,7 +74,7 @@ getJSON('/subscriptions',function(err,subscriptions){
       // output the kiss get url:      
       eventName = {
         charge:'charged',
-        adjustment:'billed',
+        adjustment:'charged',
         payment:'billed'
       }[transaction.transaction_type];
       
@@ -83,7 +83,7 @@ getJSON('/subscriptions',function(err,subscriptions){
         return;
       }
 
-      var versionSuffix='V2';
+      var versionSuffix='V3';
       var params={
         'Plan Name':subscription.plan,
         'Billing Description':transaction.memo,
@@ -149,7 +149,7 @@ function daysAgo(days){ // returns YYYY-MM-DD string
 
 // this injects since_date into subscripton queries, which it shouldn't...
 // that is meant for transactions, and we should parse input params...
-var daysToFetch=2;
+var daysToFetch=200;
 function getJSONPage(path,perPage,page,cb){
   // qs options hasn/t landed in request yet.
   // should maybe use url.parse directly
