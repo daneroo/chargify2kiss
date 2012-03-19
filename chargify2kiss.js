@@ -7,26 +7,27 @@ var CHARGIFYSUBDOMAIN=process.env.CHARGIFYSUBDOMAIN;
 var CHARGIFYAPIKEY=process.env.CHARGIFYAPIKEY;
 var KISSMETRICSAPIKEY=process.env.KISSMETRICSAPIKEY;
 
-// var argv = require('optimist').argv;
-var argv = require('optimist')
-    .usage('Chargify, meet Kissmetrics.\nUsage: $0')
-    .demand('d')
-    .alias('t', 'test')
-    .alias('d', 'days')
-    .boolean('t')
-    .describe('days', 'Days to consider')
-    .describe('test', 'Dry-run')
-    .argv
-;
+if (0) {// var argv = require('optimist').argv;
+  var argv = require('optimist')
+  .usage('Chargify, meet Kissmetrics.\nUsage: $0')
+  .demand('d')
+  .alias('t', 'test')
+  .alias('d', 'days')
+  .boolean('t')
+  .describe('days', 'Days to consider')
+  .describe('test', 'Dry-run')
+  .argv
+  ;
 
-console.dir(argv);
+  console.dir(argv);
+  process.exit(1);
+
+}
 
 if (!CHARGIFYSUBDOMAIN || !CHARGIFYAPIKEY || !KISSMETRICSAPIKEY){
   console.log('missing CHARGIFYSUBDOMAIN or CHARGIFYAPIKEY or KISSMETRICSAPIKEY');
   process.exit(1);
 }
-
-process.exit(1);
 
 var CHARGIFYURL='https://'+CHARGIFYAPIKEY+'@'+CHARGIFYSUBDOMAIN+'.chargify.com';
 
